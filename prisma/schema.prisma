@@ -7,15 +7,15 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Tabla de usuarios elegibles (pre-aprobados del evento)
 model EligibleUser {
   id             String   @id @default(cuid())
   email          String   @unique
-  name           String
+  name           String  
   company        String?
   role           String?
   approvalStatus String   @default("approved")

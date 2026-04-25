@@ -5,13 +5,13 @@ import { LanguageProvider } from "@/components/LanguageContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Cafe Cursor | Obtenha seu crédito gratuito",
-  description: "Cadastre-se para obter seu crédito gratuito do Cursor IDE. Comunidade de desenvolvedores.",
-  keywords: ["cursor", "ide", "crédito", "desenvolvedores", "programação"],
-  authors: [{ name: "Cafe Cursor" }],
+  title: "Cafe Cursor | Вземете безплатен кредит",
+  description: "Регистрирайте се, за да получите безплатен кредит за Cursor IDE. Общност на разработчици.",
+  keywords: ["cursor", "ide", "кредит", "разработчици", "програмиране", "credit", "developers"],
+  authors: [{ name: "Alexander Gekov" }],
   openGraph: {
-    title: "Cafe Cursor | Obtenha seu crédito gratuito",
-    description: "Cadastre-se para obter seu crédito gratuito do Cursor IDE",
+    title: "Cafe Cursor | Get your free credit",
+    description: "Register to get your free Cursor IDE credit",
     type: "website",
   },
 };
@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="bg" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="antialiased">
         <LanguageProvider>
           {children}

@@ -286,7 +286,7 @@ export async function POST(request: NextRequest) {
           creditCode: user.credit.code,
           company: user.company || undefined,
           isTest: user.credit.isTest,
-          locale: locale || "pt-BR",
+          locale: locale || "bg",
         });
 
         if (!emailResult.success) {

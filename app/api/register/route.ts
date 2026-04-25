@@ -18,8 +18,7 @@ export async function POST(request: NextRequest) {
     const { name, email } = validatedData;
     const normalizedEmail = email.toLowerCase().trim();
     
-    // Obtener locale del request (default: pt-BR)
-    const locale = (body.locale === "en" ? "en" : "pt-BR") as "pt-BR" | "en";
+    const locale = (body.locale === "en" ? "en" : "bg") as "bg" | "en";
 
     console.log(`📝 [REGISTER] Intento de registro: ${normalizedEmail}`);
 

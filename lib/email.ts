@@ -2,14 +2,11 @@ import { Resend } from "resend";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 
-// Load API key from environment or .env file
 function getResendApiKey(): string | null {
-  // First try from process.env (works in production)
   if (process.env.RESEND_API_KEY) {
     return process.env.RESEND_API_KEY;
   }
   
-  // Fallback: read directly from .env file (development)
   const envPath = join(process.cwd(), ".env");
   if (existsSync(envPath)) {
     const envContent = readFileSync(envPath, "utf-8");
@@ -22,17 +19,15 @@ function getResendApiKey(): string | null {
   return null;
 }
 
-// Función para obtener cliente Resend (lazy initialization)
 function getResendClient(): Resend | null {
   const apiKey = getResendApiKey();
-  console.log(`📧 [EMAIL] Verificando API key: ${apiKey ? "✅ Configurada (" + apiKey.substring(0, 10) + "...)" : "❌ No encontrada"}`);
+  console.log(`📧 [EMAIL] API key: ${apiKey ? "✅ (" + apiKey.substring(0, 10) + "...)" : "❌ Not found"}`);
   if (!apiKey) {
     return null;
   }
   return new Resend(apiKey);
 }
 
-// Email del remitente (debe ser verificado en Resend)
 const FROM_EMAIL = process.env.FROM_EMAIL || "Cafe Cursor <onboarding@resend.dev>";
 
 interface SendCreditEmailParams {
@@ -42,12 +37,9 @@ interface SendCreditEmailParams {
   creditCode: string;
   company?: string;
   isTest?: boolean;
-  locale?: "pt-BR" | "en";
+  locale?: "bg" | "en";
 }
 
-/**
- * Envía el correo de confirmación con el crédito
- */
 export async function sendCreditEmail({
   to,
   name,
@@ -55,29 +47,26 @@ export async function sendCreditEmail({
   creditCode,
   company,
   isTest = false,
-  locale = "pt-BR",
+  locale = "bg",
 }: SendCreditEmailParams): Promise<{ success: boolean; error?: string }> {
-  // Obtener cliente Resend (lazy)
   const resendClient = getResendClient();
   
-  // Si no hay Resend configurado, solo logear (modo desarrollo)
   if (!resendClient) {
-    console.log(`📧 [EMAIL] Modo desarrollo - Email simulado`);
-    console.log(`   📬 Para: ${to}`);
-    console.log(`   👤 Nombre: ${name}`);
-    console.log(`   🎫 Crédito: ${creditCode}`);
+    console.log(`📧 [EMAIL] Dev mode - simulated email`);
+    console.log(`   📬 To: ${to}`);
+    console.log(`   👤 Name: ${name}`);
+    console.log(`   🎫 Credit: ${creditCode}`);
     console.log(`   🔗 Link: ${creditLink}`);
-    console.log(`   🏢 Empresa: ${company || "N/A"}`);
+    console.log(`   🏢 Company: ${company || "N/A"}`);
     console.log(`   🧪 Test: ${isTest}`);
     console.log(`   🌐 Locale: ${locale}`);
-    console.log(`   ✅ Email simulado con éxito`);
     return { success: true };
   }
 
   try {
-    const subject = locale === "pt-BR" 
-      ? "🎉 Seu crédito Cursor está aqui! - Cafe Cursor Floripa"
-      : "🎉 Your Cursor credit is here! - Cafe Cursor Floripa";
+    const subject = locale === "bg"
+      ? "🎉 Вашият Cursor кредит е тук! - Cafe Cursor"
+      : "🎉 Your Cursor credit is here! - Cafe Cursor";
 
     const html = generateEmailHTML({
       name,
@@ -88,7 +77,7 @@ export async function sendCreditEmail({
       locale,
     });
 
-    console.log(`📧 [EMAIL] Enviando email real a: ${to}`);
+    console.log(`📧 [EMAIL] Sending to: ${to}`);
     
     const { error } = await resendClient.emails.send({
       from: FROM_EMAIL,
@@ -98,21 +87,18 @@ export async function sendCreditEmail({
     });
 
     if (error) {
-      console.error(`❌ [EMAIL] Error enviando a ${to}:`, error);
+      console.error(`❌ [EMAIL] Error sending to ${to}:`, error);
       return { success: false, error: error.message };
     }
 
-    console.log(`✅ [EMAIL] Enviado exitosamente a: ${to}`);
+    console.log(`✅ [EMAIL] Sent successfully to: ${to}`);
     return { success: true };
   } catch (error) {
-    console.error(`❌ [EMAIL] Error inesperado:`, error);
-    return { success: false, error: "Error al enviar el correo" };
+    console.error(`❌ [EMAIL] Unexpected error:`, error);
+    return { success: false, error: "Error sending email" };
   }
 }
 
-/**
- * Genera el HTML del correo manteniendo la estética de la landing
- */
 function generateEmailHTML({
   name,
   creditLink,
@@ -121,39 +107,42 @@ function generateEmailHTML({
   isTest,
   locale,
 }: Omit<SendCreditEmailParams, "to">): string {
-  const isPtBR = locale === "pt-BR";
+  const isBg = locale === "bg";
 
   const texts = {
-    greeting: isPtBR ? `Olá, ${name}!` : `Hello, ${name}!`,
-    thanks: isPtBR 
-      ? "Obrigado por participar do Cafe Cursor Floripa!" 
-      : "Thank you for joining Cafe Cursor Floripa!",
-    intro: isPtBR
-      ? "Estamos muito felizes em ter você na nossa comunidade. Aqui está seu crédito exclusivo do Cursor IDE:"
+    greeting: isBg ? `Здравейте, ${name}!` : `Hello, ${name}!`,
+    thanks: isBg 
+      ? "Благодарим ви, че се присъединихте към Cafe Cursor!" 
+      : "Thank you for joining Cafe Cursor!",
+    intro: isBg
+      ? "Много се радваме, че сте част от нашата общност. Ето вашия ексклузивен кредит за Cursor IDE:"
       : "We're thrilled to have you in our community. Here's your exclusive Cursor IDE credit:",
-    yourCredit: isPtBR ? "Seu Crédito Cursor" : "Your Cursor Credit",
-    code: isPtBR ? "Código" : "Code",
-    useCredit: isPtBR ? "Usar Meu Crédito" : "Use My Credit",
-    testWarning: isPtBR 
-      ? "⚠️ Este é um crédito de TESTE (não válido para uso real)"
+    yourCredit: isBg ? "Вашият Cursor Кредит" : "Your Cursor Credit",
+    code: isBg ? "Код" : "Code",
+    useCredit: isBg ? "Използвай Кредита" : "Use My Credit",
+    testWarning: isBg 
+      ? "⚠️ Това е ТЕСТОВ кредит (невалиден за реална употреба)"
       : "⚠️ This is a TEST credit (not valid for real use)",
-    howToUse: isPtBR ? "Como usar:" : "How to use:",
-    step1: isPtBR 
-      ? "Clique no botão acima ou copie o link"
+    howToUse: isBg ? "Как да го използвате:" : "How to use:",
+    step1: isBg 
+      ? "Натиснете бутона по-горе или копирайте линка"
       : "Click the button above or copy the link",
-    step2: isPtBR 
-      ? "Faça login ou crie sua conta no Cursor"
+    step2: isBg 
+      ? "Влезте или създайте акаунт в Cursor"
       : "Sign in or create your Cursor account",
-    step3: isPtBR 
-      ? "O crédito será aplicado automaticamente!"
+    step3: isBg 
+      ? "Кредитът ще бъде приложен автоматично!"
       : "The credit will be applied automatically!",
-    questions: isPtBR
-      ? "Dúvidas? Entre em contato com os organizadores do evento."
+    questions: isBg
+      ? "Въпроси? Свържете се с организаторите на събитието."
       : "Questions? Contact the event organizers.",
-    footer: isPtBR
-      ? "Feito com ☕ por Chris & Alex - Cursor Ambassador Brasil"
-      : "Made with ☕ by Chris & Alex - Cursor Ambassador Brasil",
-    companyLabel: isPtBR ? "Empresa" : "Company",
+    footer: isBg
+      ? "Направено от Alexander Gekov — Cursor Ambassador Bulgaria"
+      : "Made by Alexander Gekov — Cursor Ambassador Bulgaria",
+    templateFooter: isBg
+      ? "Шаблон от Chris & Alex — Cursor Ambassador Brasil"
+      : "Template by Chris & Alex — Cursor Ambassador Brasil",
+    companyLabel: isBg ? "Компания" : "Company",
   };
 
   return `
@@ -179,7 +168,7 @@ function generateEmailHTML({
             </td>
           </tr>
 
-          <!-- Título -->
+          <!-- Title -->
           <tr>
             <td align="center" style="padding-bottom: 8px;">
               <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">
@@ -188,23 +177,22 @@ function generateEmailHTML({
             </td>
           </tr>
 
-          <!-- Subtítulo -->
+          <!-- Subtitle -->
           <tr>
             <td align="center" style="padding-bottom: 32px;">
               <p style="margin: 0; font-size: 14px; color: #a3a3a3;">
-                Florianópolis, Brasil
+                Bulgaria
               </p>
             </td>
           </tr>
 
-          <!-- Card principal -->
+          <!-- Main card -->
           <tr>
             <td>
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #171717; border: 1px solid #262626; border-radius: 16px;">
                 <tr>
                   <td style="padding: 32px;">
                     
-                    <!-- Saludo -->
                     <h2 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600; color: #ffffff;">
                       ${texts.greeting}
                     </h2>
@@ -212,12 +200,10 @@ function generateEmailHTML({
                       ${texts.thanks}
                     </p>
                     
-                    <!-- Intro -->
                     <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #a3a3a3;">
                       ${texts.intro}
                     </p>
 
-                    <!-- Info del usuario -->
                     ${company ? `
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0a0a0a; border-radius: 12px; margin-bottom: 24px;">
                       <tr>
@@ -233,7 +219,6 @@ function generateEmailHTML({
                     </table>
                     ` : ""}
 
-                    <!-- Warning de test -->
                     ${isTest ? `
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #78350f; border: 1px solid #92400e; border-radius: 12px; margin-bottom: 24px;">
                       <tr>
@@ -246,7 +231,7 @@ function generateEmailHTML({
                     </table>
                     ` : ""}
 
-                    <!-- Box del crédito -->
+                    <!-- Credit box -->
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0a0a0a; border: 1px solid #262626; border-radius: 12px; margin-bottom: 24px;">
                       <tr>
                         <td style="padding: 20px;">
@@ -263,7 +248,7 @@ function generateEmailHTML({
                       </tr>
                     </table>
 
-                    <!-- Botón CTA -->
+                    <!-- CTA button -->
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                       <tr>
                         <td align="center">
@@ -280,7 +265,7 @@ function generateEmailHTML({
             </td>
           </tr>
 
-          <!-- Instrucciones -->
+          <!-- Instructions -->
           <tr>
             <td style="padding: 32px 0;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #171717; border: 1px solid #262626; border-radius: 12px;">
@@ -321,8 +306,11 @@ function generateEmailHTML({
               <p style="margin: 0 0 8px 0; font-size: 12px; color: #737373;">
                 ${texts.questions}
               </p>
-              <p style="margin: 0; font-size: 11px; color: #525252;">
+              <p style="margin: 0 0 4px 0; font-size: 11px; color: #525252;">
                 ${texts.footer}
+              </p>
+              <p style="margin: 0; font-size: 10px; color: #404040;">
+                ${texts.templateFooter}
               </p>
             </td>
           </tr>
